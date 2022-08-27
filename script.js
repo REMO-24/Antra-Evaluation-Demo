@@ -38,7 +38,7 @@ const View = (() => {
                 `
             <li>
             <span>${course.courseName}</span>
-            <span>Course Type:${course.required}</span>
+            <span>Course Type:${course.required ? "Compulsory" : "Elective"}</span>
             <span class='s'>Course Credit:${course.credit}</span>
         </li>
             `
@@ -62,14 +62,45 @@ const View = (() => {
 
 //----------------------Model----------------------//
 
-const Model = ((api) => {
+const Model = ((api, view) => {
+
+    class Course {
+        constructor(courseId, courseName, required, credit) {
+            this.courseId = courseId
+            this.courseName = courseName
+            this.required = required
+            this.credit = credit
+        }
+    }
+
+    class State {
+        #courseList = []
+
+
+        get courseList() {
+            return this.#courseList
+        }
+        set courseList(newlist) {
+            this.#courseList = [...newlist]
+
+            const ulContainer = document.querySelector(view.domstr.courseList)
+            const tmp = view.createTmp(this.#courseList)
+            view.render(ulContainer, tmp)
+
+        }
+
+
+
+    }
+
 
     const { getCourses } = Api
 
     return {
-        getCourses
+        getCourses,
+        State
     }
-})(Api)
+})(Api, View)
 
 
 
@@ -77,11 +108,12 @@ const Model = ((api) => {
 
 const Controller = ((model, view) => {
 
+    const state = new model.State()
+
+
     const init = () => {
-        const courseList = document.querySelector(view.domstr.courseList)
-        model.getCourses().then(course => {
-            const tmp = view.createTmp(course)
-            view.render(courseList, tmp)
+        model.getCourses().then((courses) => {
+            state.courseList = courses
         })
 
 
@@ -95,22 +127,15 @@ const Controller = ((model, view) => {
 
     }
 
-    const addCredits = () => {
-        let count = 0
-        const s = document.querySelector(view.domstr.s)
-        console.log
-    }
-
 
 
 
     const runAll = () => {
         init()
         Button()
-        addCredits()
+
 
     }
-
 
     return {
         runAll
